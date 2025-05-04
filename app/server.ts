@@ -1,12 +1,24 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import OpenAI from 'openai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { createGridDBClient } from './lib/griddb.js';
+import { generateRandomID } from "./lib/randomId.js";
+import { GridDBData, GridDBConfig } from './lib/types/griddb.types.js';
+
 const app = express();
 const port = process.env.PORT || 3001;
+
+const dbConfig: GridDBConfig = {
+  griddbWebApiUrl: process.env.GRIDDB_WEBAPI_URL || '',
+  username: process.env.GRIDDB_USERNAME || '',
+  password: process.env.GRIDDB_PASSWORD || '',
+}
+
+const dbClient = createGridDBClient(dbConfig);
+dbClient.createContainer();
 
 app.use(cors());
 app.use(express.json());
@@ -60,10 +72,10 @@ const FEW_SHOTS = [
     role: 'assistant',
     content: '{"label":"neutral","predicted_rating":3,"confidence":0.55}',
   },
-];
+] as const;
 
 // API route remains
-app.post('/api/sentiment', async (req, res) => {
+app.post('/api/sentiment', async (req: express.Request, res: express.Response) => {
   const { title, text } = req.body;
   if (!title && !text) {
     return res.status(400).json({ error: 'Please supply at least a review title or body text.' });
@@ -83,18 +95,34 @@ app.post('/api/sentiment', async (req, res) => {
     });
     const raw = completion.choices[0].message.content?.trim() || '{}';
     try {
+      /** Save the data into GridDB database */
+      // Parse sentiment from model output
+      const parsed = JSON.parse(raw);
+      console.log(parsed);
+      const reviewData: GridDBData = {
+        id: generateRandomID(),
+        title,
+        review: text,
+        sentiment: JSON.stringify(parsed),
+      };
+      await dbClient.insertData({ data: reviewData });
       res.json(JSON.parse(raw));
+
     } catch {
       res.json({ error: 'Model returned invalid JSON', raw });
     }
   } catch (error) {
     console.error('[Sentiment API] Error:', error);
-    res.status(500).json({ error: error.message || 'Failed to analyze sentiment.' });
+    let errorMessage = 'Failed to analyze sentiment.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 });
 
 // Catch-all: serve index.html for any non-API route (SPA support)
-app.get('*', (req, res) => {
+app.get('*', (req: express.Request, res: express.Response) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { analyzeReviewSentiment } from '../services/sentimentService';
-import { Star } from 'lucide-react';
 import ResultDisplay from './ResultDisplay';
 
 export interface SentimentResult {
@@ -25,8 +24,12 @@ const SentimentAnalysis: React.FC = () => {
     try {
       const data = await analyzeReviewSentiment(title, text);
       setResult(data);
-    } catch (err: any) {
-      setResult({ error: err.message || 'Failed to analyze sentiment' });
+    } catch (err: unknown) {
+      let errorMessage = 'Failed to analyze sentiment';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setResult({ error: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -35,8 +38,8 @@ const SentimentAnalysis: React.FC = () => {
   return (
     <div className="w-full max-w-2xl bg-white shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
       <div className="bg-blue-600 p-6 text-white">
-        <h1 className="text-3xl font-extrabold text-center">Product Review Sentiment Analyzer</h1>
-        <p className="text-center mt-2 text-blue-100">Analyze the sentiment of product reviews. Copy and paste the review text here.</p>
+        <h1 className="text-3xl font-extrabold text-center">Sentiment Analyzer</h1>
+        <p className="text-center mt-2 text-blue-100">See if a review is positive, neutral, or negative.</p>
       </div>
       
       <div className="p-8 space-y-6">

@@ -6,51 +6,6 @@ export interface SentimentAnalysisResult {
   error?: string;
 }
 
-
-
-const SYSTEM_PROMPT = `You are a sentiment‑analysis classifier for Amazon user‑review records. You will receive one JSON object that contains the fields "title" and "text" (and sometimes "rating" which you must ignore). Your task:\n1. Read the natural‑language content (title + text).\n2. Predict the sentiment label and an estimated star rating without looking at any numeric "rating" field.\n3. Respond ONLY with a JSON object in this schema:\n{\n  "label": "positive | neutral | negative",\n  "predicted_rating": 1 | 2 | 3 | 4 | 5,\n  "confidence": 0-1\n}\nMapping rule (aligned to the Amazon Reviews dataset):\n• 1–2 stars ⇒ negative\n• 3 stars   ⇒ neutral\n• 4–5 stars ⇒ positive\nIf the review text is empty, off‑topic, or nonsense, return:\n{"label":"neutral","predicted_rating":3,"confidence":0.0}\nNever add commentary or extra keys.`;
-
-const FEW_SHOTS = [
-  {
-    role: 'user',
-    content: JSON.stringify({
-      title: 'Rock‑solid mount',
-      text:
-        'I&#39;ve tried dozens of phone mounts—this one finally stays put on bumpy roads. Five minutes to install and rock‑solid!',
-    }),
-  },
-  {
-    role: 'assistant',
-    content: '{"label":"positive","predicted_rating":5,"confidence":0.96}',
-  },
-  {
-    role: 'user',
-    content: JSON.stringify({
-      title: 'Broke in a week',
-      text:
-        'Looks nice, but the zipper broke after one week and Amazon wouldn\'t replace it.',
-    }),
-  },
-  {
-    role: 'assistant',
-    content: '{"label":"negative","predicted_rating":1,"confidence":0.93}',
-  },
-  {
-    role: 'user',
-    content: JSON.stringify({
-      title: 'Meh',
-      text:
-        'These were lightweight and soft but much too small for my liking. I would have preferred two of these together to make one loc.',
-    }),
-  },
-  {
-    role: 'assistant',
-    content: '{"label":"neutral","predicted_rating":3,"confidence":0.55}',
-  },
-];
-
-
-
 // Function to analyze review sentiment
 export async function analyzeReviewSentiment(
   title: string, 
@@ -68,40 +23,12 @@ export async function analyzeReviewSentiment(
     });
     const data = await response.json();
     return data;
-  } catch (error: any) {
-    console.error('[Sentiment API] Error:', error);
-    return { error: error.message || 'Failed to analyze sentiment.' };
-  }
-}
-
-// Mock sentiment analysis function for demo purposes when no API key is provided
-function mockSentimentAnalysis(title: string, text: string): SentimentAnalysisResult {
-  const combinedText = (title + " " + text).toLowerCase();
-  
-  // Simple keyword-based mock analysis
-  const positiveWords = ['great', 'excellent', 'good', 'love', 'amazing', 'perfect', 'best'];
-  const negativeWords = ['bad', 'terrible', 'poor', 'hate', 'worst', 'broke', 'disappointed'];
-  
-  let positiveScore = 0;
-  let negativeScore = 0;
-  
-  positiveWords.forEach(word => {
-    if (combinedText.includes(word)) positiveScore++;
-  });
-  
-  negativeWords.forEach(word => {
-    if (combinedText.includes(word)) negativeScore++;
-  });
-  
-  if (positiveScore > negativeScore) {
-    const rating = positiveScore > 2 ? 5 : 4;
-    const confidence = 0.5 + (positiveScore * 0.1);
-    return { label: 'positive', predicted_rating: rating, confidence: Math.min(confidence, 0.95) };
-  } else if (negativeScore > positiveScore) {
-    const rating = negativeScore > 2 ? 1 : 2;
-    const confidence = 0.5 + (negativeScore * 0.1);
-    return { label: 'negative', predicted_rating: rating, confidence: Math.min(confidence, 0.95) };
-  } else {
-    return { label: 'neutral', predicted_rating: 3, confidence: 0.5 };
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to analyze sentiment.';
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    console.error('[Sentiment API] Error:', errorMessage);
+    return { error: errorMessage };
   }
 }
