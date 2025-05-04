@@ -1,5 +1,3 @@
-import OpenAI from 'openai';
-
 // Define the type for sentiment analysis result
 export interface SentimentAnalysisResult {
   label?: string;
@@ -8,9 +6,7 @@ export interface SentimentAnalysisResult {
   error?: string;
 }
 
-// This would typically come from environment variables
-// For demo purposes, it will be provided by the user
-let OPENAI_API_KEY: string | null = null;
+
 
 const SYSTEM_PROMPT = `You are a sentiment‑analysis classifier for Amazon user‑review records. You will receive one JSON object that contains the fields "title" and "text" (and sometimes "rating" which you must ignore). Your task:\n1. Read the natural‑language content (title + text).\n2. Predict the sentiment label and an estimated star rating without looking at any numeric "rating" field.\n3. Respond ONLY with a JSON object in this schema:\n{\n  "label": "positive | neutral | negative",\n  "predicted_rating": 1 | 2 | 3 | 4 | 5,\n  "confidence": 0-1\n}\nMapping rule (aligned to the Amazon Reviews dataset):\n• 1–2 stars ⇒ negative\n• 3 stars   ⇒ neutral\n• 4–5 stars ⇒ positive\nIf the review text is empty, off‑topic, or nonsense, return:\n{"label":"neutral","predicted_rating":3,"confidence":0.0}\nNever add commentary or extra keys.`;
 
@@ -53,51 +49,25 @@ const FEW_SHOTS = [
   },
 ];
 
-// Function to initialize the OpenAI client with user's API key
-export function initializeOpenAI(apiKey: string): void {
-  OPENAI_API_KEY = apiKey;
-}
+
 
 // Function to analyze review sentiment
 export async function analyzeReviewSentiment(
   title: string, 
   text: string
 ): Promise<SentimentAnalysisResult> {
-  // For demo purposes, use mockResponse if no API key is set
-  if (!OPENAI_API_KEY) {
-    return mockSentimentAnalysis(title, text);
-  }
-
   if (!text.trim() && !title.trim()) {
     throw new Error('Please supply at least a review title or body text.');
   }
 
   try {
-    const openai = new OpenAI({
-      apiKey: OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true // Required for client-side usage
+    const response = await fetch('http://localhost:3001/api/sentiment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, text })
     });
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      temperature: 0,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...FEW_SHOTS,
-        {
-          role: 'user',
-          content: JSON.stringify({ title, text }),
-        },
-      ],
-    });
-
-    const raw = completion.choices[0].message.content?.trim() || '{}';
-
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return { error: 'Model returned invalid JSON', raw };
-    }
+    const data = await response.json();
+    return data;
   } catch (error: any) {
     console.error('[Sentiment API] Error:', error);
     return { error: error.message || 'Failed to analyze sentiment.' };
