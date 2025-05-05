@@ -1,12 +1,14 @@
-# Sentiment Analysis on Amazon Reviews using OpenAI
+# Sentiment Analysis on Product Reviews using OpenAI
 
 ## Overview
 
-This article explores a practical implementation of sentiment analysis on the Amazon Reviews dataset using OpenAI's large language models (LLMs) and GridDB, a scalable time-series database. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
+This article explores a practical implementation of sentiment analysis on the product reviews using OpenAI's large language models (LLMs) and GridDB, a scalable time-series database. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
 
 ## Why Use AI for Sentiment Analysis?
 
-Manual analysis of customer sentiment is impossible at scale due to the sheer volume of user-generated content. Artificial intelligence, especially LLMs like OpenAI’s GPT, enables automated analysis with human-level language understanding. Key advantages include:
+Manual analysis of customer sentiment is impossible at scale due to the sheer volume of user-generated content. Artificial intelligence, especially LLMs like OpenAI’s GPT, enables automated analysis with human-level language understanding. 
+
+Key advantages include:
 
 * **Scalability**: AI can process millions of reviews quickly and consistently.
 * **Context Awareness**: LLMs are capable of identifying sarcasm, subtle opinions, and emotional tone.
@@ -24,10 +26,6 @@ GridDB is a time-series and key-value database designed for IoT and high-perform
 
 AI models used for natural language processing and sentiment inference. We will use `gpt-4o` model.
 
-### **Amazon Review Dataset**
-
-A large-scale dataset of product reviews. We will use [amazon product reviews](https://amazon-reviews-2023.github.io/) dataset collected in 2023.
-
 ### **Next.js** 
 
 Framework for rendering and publishing this blog
@@ -37,13 +35,7 @@ Framework for rendering and publishing this blog
 In a real-world deployment, the system architecture should support high-throughput data processing, robust API interaction, and scalable storage for time-based analysis.
 
 ```
-[Amazon Review Dataset (raw JSON)]
-        |
-        v
-[Data Preprocessor (ETL - Node.js)]
-        - Parse review files
-        - Clean and truncate text
-        - Select relevant fields
+[Product Review Data]
         |
         v
 [Sentiment Analysis Module (OpenAI API)]
@@ -59,9 +51,7 @@ In a real-world deployment, the system architecture should support high-throughp
         |
         v
 [Visualization & Query Layer (Next.js Frontend)]
-        - Show sentiment trends over time
-        - Filter by product or category
-        - Display interactive dashboards
+        - Show sentiment analysis results
 ```
 
 This architecture emphasizes modular design, where each stage is responsible for a specific function in the pipeline, promoting scalability, clarity, and maintainability.
