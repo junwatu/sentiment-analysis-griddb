@@ -18,11 +18,42 @@ Key advantages include:
 
 AI-driven sentiment analysis helps businesses track public opinion, improve customer service, and guide product development based on real user feedback.
 
+## Running the Project
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/junwatu/sentiment-analysis-griddb.git
+cd app
+npm install
+```
+
+### Setup Environment Variables
+
+Create a `.env` file in the `app` directory of the project and add the following environment variables:
+
+```ini
+OPENAI_API_KEY=
+GRIDDB_WEBAPI_URL=
+GRIDDB_USERNAME=
+GRIDDB_PASSWORD=
+```
+
+### Run the Project
+
+```bash
+npm run dev:full
+```
+
+### Access the Project
+
+Open your browser and navigate to `http://localhost:5173` to access the project.
+
 ## Technologies Used
 
 ### Node.js
 
-You need Node.js installed because this project uses Next.js. Install the Node LTS version from [here](https://nodejs.org/id/download).
+You need Node.js installed because this project uses [Vite](https://vite.dev/) based project. Install the Node LTS version from [here](https://nodejs.org/id/download).
 
 ### **OpenAI** 
 
@@ -71,42 +102,22 @@ To whitelist the IP, go to the GridDB Cloud Admin and navigate to the **Network 
 
 ![ip whitelist](images/ip-whitelist.png)
 
-
 ## Project Architecture
 
-In a real-world deployment, the system architecture should support high-throughput data processing, robust API interaction, and scalable storage for time-based analysis.
+![Architecture](images/architecture.png)
 
-```mermaid
-flowchart TD
-    A[Product Review Data] --> B(Sentiment Analysis 
-    **OpenAI API**);
-    B --> C[Store review sentiment and metadata
-    **GridDB**];
-    C --> D[Show sentiment analysis results];
-```
+The diagram illustrates the flow of data in the sentiment analysis system:
 
-This architecture emphasizes modular design, where each stage is responsible for a specific function in the pipeline, promoting scalability, clarity, and maintainability.
+1. Product Review Data is fed into the system.
+2. The OpenAI API analyzes this data for sentiment.
+3. The sentiment results and associated metadata are then stored in GridDB.
+4. Finally, the results are presented, likely through a user interface, to Show sentiment analysis results.
+
+This represents a pipeline where raw review data is processed, analyzed for sentiment, stored in GridDB, and then made available for viewing.
 
 ## Dataset Preparation
 
-The [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) includes millions of product reviews in JSON format. Each entry typically contains:
-
-* `reviewText` – the content of the review
-* `summary` – a short title
-* `overall` – numerical rating (1–5)
-* `asin` – product ID
-* `reviewTime` – timestamp
-
-### Extracted Fields for Analysis
-
-* `review_id`
-* `product_id`
-* `review_text`
-* `review_summary`
-* `rating`
-* `timestamp`
-
-These fields are preprocessed to remove irrelevant data, standardize formatting, and reduce input size for the model.
+You can use any data review for this project. For example, you can use the [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) or just copy paste the reviews from one of the product reviews on Amazon.
 
 ## Running Sentiment Analysis with OpenAI
 
@@ -114,11 +125,13 @@ We use the OpenAI API (e.g., GPT-4o) to evaluate the sentiment of each review. T
 
 ### Example Prompt
 
-```
-Analyze the sentiment of this review and classify it as Positive, Neutral, or Negative:
+We will use system prompt to guide the model to understand the task. The system prompt is as follows:
 
-"{reviewText}"
 ```
+You are a sentiment‑analysis classifier for Amazon user‑review records. You will receive one JSON object that contains the fields "title" and "text" (and sometimes "rating" which you must ignore). Your task:\n1. Read the natural‑language content (title + text).\n2. Predict the sentiment label and an estimated star rating without looking at any numeric "rating" field.\n3. Respond ONLY with a JSON object in this schema:\n{\n  "label": "positive | neutral | negative",\n  "predicted_rating": 1 | 2 | 3 | 4 | 5,\n  "confidence": 0-1\n}\nMapping rule (aligned to the Amazon Reviews dataset):\n• 1–2 stars ⇒ negative\n• 3 stars   ⇒ neutral\n• 4–5 stars ⇒ positive\nIf the review text is empty, off‑topic, or nonsense, return:\n{"label":"neutral","predicted_rating":3,"confidence":0.0}\nNever add commentary or extra keys.
+```
+
+
 
 ### Expected Output Format
 
