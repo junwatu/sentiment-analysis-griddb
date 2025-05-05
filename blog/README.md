@@ -37,7 +37,10 @@ OPENAI_API_KEY=
 GRIDDB_WEBAPI_URL=
 GRIDDB_USERNAME=
 GRIDDB_PASSWORD=
+VITE_BASE_URL=http://localhost:3000
 ```
+
+You can copy the `.env.example` file to `.env` and fill in the values. To get OpenAI API key, read this [section](#openai) and for GridDB Cloud, read this [section](#griddb-cloud-setup). By default, the `VITE_BASE_URL` is set to `http://localhost:3000` but you can change it to your own domain.
 
 ### Run the Project
 
@@ -47,7 +50,9 @@ npm run dev:full
 
 ### Access the Project
 
-Open your browser and navigate to `http://localhost:5173` to access the project.
+If you dont change the `VITE_BASE_URL`, open your browser and navigate to `http://localhost:3000` to access the project.
+
+![Sentiment Analysis](images/griddb-sentiment-ui.png)
 
 ## Technologies Used
 
@@ -117,81 +122,175 @@ This represents a pipeline where raw review data is processed, analyzed for sent
 
 ## Dataset Preparation
 
-You can use any data review for this project. For example, you can use the [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) or just copy paste the reviews from one of the product reviews on Amazon.
+You can use any data review for this project. For example, you can use the [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) or just copy paste a review from one of the product reviews on Amazon.
 
 ## Running Sentiment Analysis with OpenAI
 
 We use the OpenAI API (e.g., GPT-4o) to evaluate the sentiment of each review. The input is a text prompt that asks the model to categorize the sentiment.
 
-### Example Prompt
+### System Prompt
 
 We will use system prompt to guide the model to understand the task. The system prompt is as follows:
 
-```
+```shell
 You are a sentiment‑analysis classifier for Amazon user‑review records. You will receive one JSON object that contains the fields "title" and "text" (and sometimes "rating" which you must ignore). Your task:\n1. Read the natural‑language content (title + text).\n2. Predict the sentiment label and an estimated star rating without looking at any numeric "rating" field.\n3. Respond ONLY with a JSON object in this schema:\n{\n  "label": "positive | neutral | negative",\n  "predicted_rating": 1 | 2 | 3 | 4 | 5,\n  "confidence": 0-1\n}\nMapping rule (aligned to the Amazon Reviews dataset):\n• 1–2 stars ⇒ negative\n• 3 stars   ⇒ neutral\n• 4–5 stars ⇒ positive\nIf the review text is empty, off‑topic, or nonsense, return:\n{"label":"neutral","predicted_rating":3,"confidence":0.0}\nNever add commentary or extra keys.
 ```
 
+### Few Shots
 
+Few shots are used to guide the model to understand the task. The few shots are as follows:
 
-### Expected Output Format
+```typescript
+const FEW_SHOTS = [
+  {
+    role: 'user',
+    content: JSON.stringify({
+      title: 'Rock‑solid mount',
+      text:
+        "I've tried dozens of phone mounts—this one finally stays put on bumpy roads. Five minutes to install and rock‑solid!",
+    }),
+  },
+  {
+    role: 'assistant',
+    content: '{"label":"positive","predicted_rating":5,"confidence":0.96}',
+  },
+  {
+    role: 'user',
+    content: JSON.stringify({
+      title: 'Broke in a week',
+      text:
+        "Looks nice, but the zipper broke after one week and Amazon wouldn't replace it.",
+    }),
+  },
+  {
+    role: 'assistant',
+    content: '{"label":"negative","predicted_rating":1,"confidence":0.93}',
+  },
+  {
+    role: 'user',
+    content: JSON.stringify({
+      title: 'Meh',
+      text:
+        'These were lightweight and soft but much too small for my liking. I would have preferred two of these together to make one loc.',
+    }),
+  },
+  {
+    role: 'assistant',
+    content: '{"label":"neutral","predicted_rating":3,"confidence":0.55}',
+  },
+] as const;
+```
 
-* `sentiment`: One of Positive, Neutral, or Negative
-* `model_used`: Identifier for the GPT version
-* `confidence`: Optional qualitative label (if included)
+### Call OpenAI API
 
-This output is parsed and matched with the original review metadata for downstream storage and analysis.
+The sentiment analysis done by OpenAI using `gpt-4o` model. The code is available in the `server.ts` file. 
+
+Here is the important code snippet:
+
+```typescript
+const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    temperature: 0,
+    messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...FEW_SHOTS,
+        {
+          role: 'user',
+          content: JSON.stringify({ title, text }),
+        },
+    ],
+});
+```
+
+The `text` is the review text and `title` is the review title.
 
 ## Storing Results in GridDB
 
-GridDB is used to persist the processed review data. We use a time-series container to support time-based filtering and aggregation.
+GridDB is used to persist the processed review data. We use a collection container to store the data.
 
-### Example Container Schema
+### Container Schema
 
-* `review_id`: string (primary key)
-* `product_id`: string
-* `sentiment`: string
-* `rating`: float
-* `timestamp`: datetime
-* `model`: string
+The container schema is as follows:
 
-### Relevant GridDB Features
+* `id`: INTEGER
+* `title`: STRING
+* `review`: STRING
+* `sentiment`: STRING
 
-* Time-series containers for efficient time-based operations
-* Composite indexes for high-speed querying
-* TQL (Time-series Query Language) for flexible analytics
+### Saving Data to GridDB
 
-## Querying & Analyzing the Results
+The data is saved to GridDB using the `insertData` function. You can find the code in the `server.ts` file in the route `/api/sentiment`.
 
-GridDB allows fast and structured access to sentiment data. Common queries include:
-
-* Counting all negative reviews for a given product
-* Comparing sentiment classification with average star rating
-* Identifying temporal trends in sentiment (weekly, monthly)
-* Filtering sentiment data by category or product line
-
-### Query Example (Pseudocode)
-
-```
-SELECT COUNT(*) FROM reviews
-WHERE sentiment = 'Negative' AND product_id = 'B000123XYZ'
+```typescript
+const reviewData: GridDBData = {
+    id: generateRandomID(),
+    title,
+    review: text,
+    sentiment: JSON.stringify(parsed),
+};
+await dbClient.insertData({ data: reviewData });
 ```
 
-Data retrieved from GridDB can be visualized in the frontend using interactive charts or exported for further analysis.
+The code to insert data is available in the `griddb.ts` file.
 
-## Performance Notes & Lessons Learned
+```typescript
+async function insertData({
+	data,
+	containerName = 'sentiments',
+}: {
+	data: GridDBData;
+	containerName?: string;
+}): Promise<GridDBResponse> {
+	try {
+		const row = [
+			parseInt(data.id.toString()),
+			data.title,
+			data.review,
+			data.sentiment,
+		];
 
-* OpenAI's rate limits require smart batching and retry logic
-* GridDB performs best with bulk inserts in container-sized batches
-* Reviews should be truncated to avoid exceeding model token limits
-* GridDB's in-memory architecture and compression improve both read and write performance on large datasets
+		const path = `/containers/${containerName}/rows`;
+		return await makeRequest(path, [row], 'PUT');
+	} catch (error) {
+		if (error instanceof GridDBError) {
+			throw error;
+		}
+
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		throw new GridDBError(`Failed to insert data: ${errorMessage}`, undefined, undefined, error);
+	}
+}
+```
+
+The API route to insert data in GridDB Cloud is:
+
+ ```typescript
+ `${GRIDDB_WEB_API_URL}/containers/sentiments/rows`
+```
+
+Using the HTTP PUT method, the data can be easily inserted into the database.
+
+### Query Example
+
+// TODO: Add query example
+
+## User Interface
+
+The UI is built using React and Vite. It is a simple form that allows users to input a review title and text, and then submit the form to the `/api/sentiment` endpoint. 
+
+
+![user interface](images/griddb-sentiment-ui.png)
+
+The response from the endpoint is then displayed in the UI.
+
+![user interface](images/sentiment-analysis-1.png)
 
 ## Conclusion
 
-This project demonstrates a real-world use case of combining natural language processing and time-series databases for high-volume sentiment analysis. Using OpenAI for intelligent sentiment tagging and GridDB for scalable data storage enables fast, efficient processing of customer reviews at scale. The same framework can be extended to other datasets and domains, including social media, customer support logs, or live feedback systems.
+This project demonstrates a real-world use case of combining AI          and databases for sentiment analysis. Using OpenAI for intelligent sentiment tagging and GridDB for scalable data storage enables fast, efficient processing of customer reviews. The same framework can be extended to other datasets and domains, including social media, customer support logs, or live feedback systems.
 
 ## References
 
-* [Amazon Review Dataset – UCSD](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews)
 * [GridDB Official Site](https://griddb.net/en/)
 * [OpenAI API Documentation](https://platform.openai.com/docs)
 * [GridDB Blog](https://griddb.net/en/blog/)
