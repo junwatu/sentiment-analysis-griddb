@@ -6,7 +6,27 @@ import { fileURLToPath } from 'url';
 import { createGridDBClient } from './lib/griddb.js';
 import { generateRandomID } from "./lib/randomId.js";
 const app = express();
-const port = process.env.PORT || 3001;
+// --- Determine Host and Port --- 
+let host = 'localhost';
+let port = 3001; // Default port
+const viteBaseUrl = process.env.VITE_BASE_URL;
+if (viteBaseUrl) {
+    try {
+        const url = new URL(viteBaseUrl);
+        host = url.hostname;
+        port = parseInt(url.port, 10); // Parse port from URL
+    }
+    catch (error) {
+        console.error(`Invalid VITE_BASE_URL: ${viteBaseUrl}. Using defaults.`);
+        // Fallback to PORT env var if VITE_BASE_URL is invalid
+        port = parseInt(process.env.PORT || '3001', 10);
+    }
+}
+else {
+    // Fallback to PORT env var if VITE_BASE_URL is not set
+    port = parseInt(process.env.PORT || '3001', 10);
+}
+// --- End Determine Host and Port ---
 const dbConfig = {
     griddbWebApiUrl: process.env.GRIDDB_WEBAPI_URL || '',
     username: process.env.GRIDDB_USERNAME || '',
@@ -16,11 +36,13 @@ const dbClient = createGridDBClient(dbConfig);
 dbClient.createContainer();
 app.use(cors());
 app.use(express.json());
-// Serve static files from Vite build
+// --- Serve static files from Vite build output --- 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, 'dist');
+console.log(__dirname);
+const distPath = path.join(__dirname, '../dist');
 app.use(express.static(distPath));
+// ---
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -111,6 +133,6 @@ app.post('/api/sentiment', async (req, res) => {
 app.get('*', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
-app.listen(port, () => {
-    console.log(`Express server listening on port ${port}`);
+app.listen(port, host, () => {
+    console.log(`Server running at http://${host}:${port}`);
 });
