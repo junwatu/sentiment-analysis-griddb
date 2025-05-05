@@ -1,5 +1,7 @@
 # Sentiment Analysis on Product Reviews using OpenAI
 
+![sentiment analysis](images/cover.jpeg)
+
 ## Overview
 
 This article explores a practical implementation of sentiment analysis on the product reviews using OpenAI's large language models (LLMs) and GridDB, a scalable time-series database. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
