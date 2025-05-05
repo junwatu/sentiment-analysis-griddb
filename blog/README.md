@@ -18,40 +18,69 @@ AI-driven sentiment analysis helps businesses track public opinion, improve cust
 
 ## Technologies Used
 
-### **GridDB Cloud** 
+### Node.js
 
-GridDB is a time-series and key-value database designed for IoT and high-performance analytics.
+You need Node.js installed because this project uses Next.js. Install the Node LTS version from [here](https://nodejs.org/id/download).
 
 ### **OpenAI** 
 
-AI models used for natural language processing and sentiment inference. We will use `gpt-4o` model.
+AI models used for natural language processing and sentiment inference. 
 
-### **Next.js** 
+Create the OpenAI API key [here](https://platform.openai.com/). You may need create a project and enable few models. We will use `gpt-4o` model.
 
-Framework for rendering and publishing this blog
+### GridDB Cloud Setup
+
+The GridDB Cloud offers a free plan tier and is officially available worldwide.
+
+You need these GridDB environment variables in the `.env` file:
+
+```ini
+GRIDDB_WEBAPI_URL=
+GRIDDB_USERNAME=
+GRIDDB_PASSWORD=
+```
+
+#### Sign Up for GridDB Cloud Free Plan
+
+If you would like to sign up for a GridDB Cloud Free instance, you can do so in the following link: [https://form.ict-toshiba.jp/download_form_griddb_cloud_freeplan_e](https://form.ict-toshiba.jp/download_form_griddb_cloud_freeplan_e).
+
+After successfully signing up, you will receive a free instance along with the necessary details to access the GridDB Cloud Management GUI, including the **GridDB Cloud Portal URL**, **Contract ID**, **Login**, and **Password**.
+
+#### GridDB WebAPI URL
+
+Go to the GridDB Cloud Portal and copy the WebAPI URL from the **Clusters** section. It should look like this:
+
+![GridDB Portal](images/griddb-cloud-portal.png)
+
+#### GridDB Username and Password
+
+Go to the **GridDB Users** section of the GridDB Cloud portal and create or copy the username for `GRIDDB_USERNAME`. The password is set when the user is created for the first time, use this as the `GRIDDB_PASSWORD`.
+
+![GridDB Users](images/griddb-cloud-users.png)
+
+For more details, to get started with GridDB Cloud, please follow this [quick start guide](https://griddb.net/en/blog/griddb-cloud-quick-start-guide/).
+
+#### IP Whitelist
+When running this project, please ensure that the IP address where the project is running is whitelisted. Failure to do so will result in a 403 status code or forbidden access.
+
+You can use a website like [What Is My IP Address](https://whatismyipaddress.com/) to find your public IP address.
+
+To whitelist the IP, go to the GridDB Cloud Admin and navigate to the **Network Access** menu.
+
+![ip whitelist](images/ip-whitelist.png)
+
 
 ## Project Architecture
 
 In a real-world deployment, the system architecture should support high-throughput data processing, robust API interaction, and scalable storage for time-based analysis.
 
-```
-[Product Review Data]
-        |
-        v
-[Sentiment Analysis Module (OpenAI API)]
-        - Send batches to GPT model
-        - Handle retries and errors
-        - Interpret model output
-        |
-        v
-[Data Storage Layer (GridDB)]
-        - Store review sentiment and metadata
-        - Use time-series schema for temporal queries
-        - Optimize with composite indexing
-        |
-        v
-[Visualization & Query Layer (Next.js Frontend)]
-        - Show sentiment analysis results
+```mermaid
+flowchart TD
+    A[Product Review Data] --> B(Sentiment Analysis 
+    **OpenAI API**);
+    B --> C[Store review sentiment and metadata
+    **GridDB**];
+    C --> D[Show sentiment analysis results];
 ```
 
 This architecture emphasizes modular design, where each stage is responsible for a specific function in the pipeline, promoting scalability, clarity, and maintainability.
