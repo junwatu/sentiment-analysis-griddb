@@ -358,4 +358,3 @@ This project demonstrates a real-world use case of combining AI and databases fo
 
 * [GridDB Official Site](https://griddb.net/en/)
 * [OpenAI API Documentation](https://platform.openai.com/docs)
-* [GridDB Blog](https://griddb.net/en/blog/)
