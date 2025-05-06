@@ -148,6 +148,8 @@ We will use a system prompt to guide the model to understand the task. The syste
 You are a sentiment‑analysis classifier for Amazon user‑review records. You will receive one JSON object that contains the fields "title" and "text" (and sometimes "rating" which you must ignore). Your task:\n1. Read the natural‑language content (title + text).\n2. Predict the sentiment label and an estimated star rating without looking at any numeric "rating" field.\n3. Respond ONLY with a JSON object in this schema:\n{\n  "label": "positive | neutral | negative",\n  "predicted_rating": 1 | 2 | 3 | 4 | 5,\n  "confidence": 0-1\n}\nMapping rule (aligned to the Amazon Reviews dataset):\n• 1–2 stars ⇒ negative\n• 3 stars   ⇒ neutral\n• 4–5 stars ⇒ positive\nIf the review text is empty, off‑topic, or nonsense, return:\n{"label":"neutral","predicted_rating":3,"confidence":0.0}\nNever add commentary or extra keys.
 ```
 
+Basically, it tells the model to behave like a sentiment analysis classifier for Amazon user-review records.
+
 ### Few Shots
 
 A few shots are used to guide the model in understanding the task. The few shots used in this project are as follows:
@@ -192,6 +194,20 @@ const FEW_SHOTS = [
  },
 ] as const;
 ```
+
+Few-shot examples are used to help a model quickly learn a specific task or format by demonstrating correct input-output pairs. In this context, these few shots serve as demonstrations to guide the sentiment analysis model, illustrating:
+ 
+- Expected input format: Reviews consisting of a title and text.
+
+- Expected output structure: A JSON response containing:
+   
+   - `label`: sentiment classification ("positive", "negative", "neutral").
+
+   - `predicted_rating`: numerical rating estimation (1–5).
+
+   - `confidence`: confidence score for the prediction.
+
+The model leverages these examples to understand precisely how to classify and score new reviews in a similar structured manner.
 
 ### Call OpenAI API
 
