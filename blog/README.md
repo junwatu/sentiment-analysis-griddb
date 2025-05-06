@@ -1,6 +1,6 @@
 # Sentiment Analysis on Product Reviews using OpenAI
 
-![sentiment analysis](images/cover.jpeg)
+![sentiment analysis](images/cover.jpg)
 
 ## Overview
 
