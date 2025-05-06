@@ -318,7 +318,7 @@ The UI is built using React and Vite. It is a simple form that allows users to i
 
 ![user interface](images/griddb-sentiment-ui.png)
 
-The response data has JSON format, for example:
+After submitting the form and processing the sentiment analysis, the UI receives the response data that has JSON format, for example:
 
 ```json
 {
@@ -327,13 +327,13 @@ The response data has JSON format, for example:
     "confidence": 0.85
 }
 ```
-The response data from the endpoint is then displayed in the UI. 
+The response data is then displayed in the UI. If the review is positive, the UI will display a green color, if it is negative, the UI will display a red color, and if it is neutral, the UI will display a yellow color. Also the UI will display the predicted rating and confidence level.
 
 ![user interface](images/sentiment-analysis-1.png)
 
 ## Conclusion
 
-This project demonstrates a real-world use case of combining AI and databases for sentiment analysis. Using OpenAI for intelligent sentiment tagging and GridDB for scalable data storage enables fast, efficient processing of customer reviews. The same framework can be extended to other datasets and domains, including social media, customer support logs, or live feedback systems.
+This project demonstrates a real-world use case of combining AI and databases for sentiment analysis. Using OpenAI for intelligent sentiment analysis and GridDB for data storage enables fast, efficient processing of customer reviews. The same framework can be extended to other datasets and domains, including social media, customer support logs, or live feedback systems.
 
 ## References
 
