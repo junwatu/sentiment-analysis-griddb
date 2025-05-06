@@ -326,7 +326,9 @@ app.get('/api/sentiments', async (req: express.Request, res: express.Response) =
 });
 ```
 
-The code above uses SQL SELECT statement to query all data from the `sentiments` container.
+The code above uses SQL SELECT statement to query all data from the `sentiments` container and if you query the data directly from the browser, you can use the following URL `https://localhost:3000/api/sentiments`
+
+![query all data](images/query-all-data.png)
 
 ## User Interface
 
