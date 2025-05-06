@@ -4,7 +4,7 @@
 
 ## Overview
 
-This article explores a practical implementation of sentiment analysis on product reviews using OpenAI's large language models (LLMs) and GridDB, a scalable time-series database. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
+This article explores a practical implementation of sentiment analysis on product reviews using OpenAI's large language models (LLMs) and GridDB. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
 
 ## Why Use AI for Sentiment Analysis?
 
@@ -126,7 +126,7 @@ You can use any data review for this project. For example, you can use the [Amaz
 
 ## Server
 
-The server is built using Node.js and Express.js. It is a simple server that provides a few API routes. 
+The server is built using Node.js and Express.js. It is a simple server that provides a few API routes. You can see the server code in the `server.ts` file.
 
 ### API Routes
 
