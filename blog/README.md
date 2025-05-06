@@ -116,7 +116,7 @@ The diagram illustrates the flow of data in the sentiment analysis system:
 1. Product Review Data is fed into the system.
 2. The OpenAI API analyzes this data for sentiment.
 3. The sentiment results and associated metadata are then stored in GridDB.
-4. Finally, the results are presented, likely through a user interface, to Show sentiment analysis results.
+4. Finally, the sentiment analysis results are presented through a user interface.
 
 This represents a pipeline where raw review data is processed, analyzed for sentiment, stored in GridDB, and then made available for viewing.
 
