@@ -284,9 +284,24 @@ The API route to insert data in GridDB Cloud is:
 
 Using the HTTP PUT method, the data can be easily inserted into the database.
 
-### Query Example
+### Query All Data
 
+To query all data from the `sentiments` container, you can use the following API route:
 
+```typescript
+app.get('/api/sentiments', async (req: express.Request, res: express.Response) => {
+	try {
+		// Search all data
+		const results = await dbClient.searchData([{ type: 'sql', stmt: 'SELECT * FROM sentiments' }]);
+
+		res.json({ data: results });
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+```
+
+The code uses SQL SELECT statement to query all data from the `sentiments` container.
 
 ## User Interface
 
