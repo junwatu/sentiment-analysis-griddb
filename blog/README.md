@@ -124,6 +124,20 @@ This represents a pipeline where raw review data is processed, analyzed for sent
 
 You can use any data review for this project. For example, you can use the [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) or just copy paste a review from one of the product reviews on Amazon.
 
+## Server
+
+The server is built using Node.js and Express.js. It is a simple server that provides a few API routes. 
+
+### API Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| **POST** | `/api/sentiment` | Sentiment analysis for a review and persist the result in GridDB |
+| **GET**  | `/api/sentiments` | Retrieve **all** stored review records |
+| **GET**  | `*` (any non‑API path) | Serve main UI |
+
+
+
 ## Running Sentiment Analysis with OpenAI
 
 We use the OpenAI API (e.g., GPT-4o) to evaluate the sentiment of each review. The input is a text prompt that asks the model to categorize the sentiment.
@@ -138,7 +152,7 @@ You are a sentiment‑analysis classifier for Amazon user‑review records. You 
 
 ### Few Shots
 
-Few shots are used to guide the model to understand the task. The few shots are as follows:
+Few shots are used to guide the model to understand the task. The few shots used in this project are as follows:
 
 ```typescript
 const FEW_SHOTS = [
@@ -212,10 +226,10 @@ GridDB is used to persist the processed review data. We use a collection contain
 
 The container schema is as follows:
 
-* `id`: INTEGER
-* `title`: STRING
-* `review`: STRING
-* `sentiment`: STRING
+* `id`: `INTEGER`
+* `title`: `STRING`
+* `review`: `STRING`
+* `sentiment`: `STRING`
 
 ### Saving Data to GridDB
 
@@ -272,7 +286,7 @@ Using the HTTP PUT method, the data can be easily inserted into the database.
 
 ### Query Example
 
-// TODO: Add query example
+
 
 ## User Interface
 

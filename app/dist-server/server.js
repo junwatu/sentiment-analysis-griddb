@@ -129,6 +129,16 @@ app.post('/api/sentiment', async (req, res) => {
         res.status(500).json({ error: errorMessage });
     }
 });
+app.get('/api/sentiments', async (req, res) => {
+    try {
+        // Search all data
+        const results = await dbClient.searchData([{ type: 'sql', stmt: 'SELECT * FROM sentiments' }]);
+        res.json({ data: results });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 // Catch-all: serve index.html for any non-API route (SPA support)
 app.get('*', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
