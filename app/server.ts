@@ -129,6 +129,7 @@ app.post('/api/sentiment', async (req: express.Request, res: express.Response) =
         sentiment: JSON.stringify(parsed),
       };
       await dbClient.insertData({ data: reviewData });
+      console.log(JSON.parse(raw));
       res.json(JSON.parse(raw));
 
     } catch {
