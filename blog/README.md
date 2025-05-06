@@ -332,7 +332,7 @@ The code above uses SQL SELECT statement to query all data from the `sentiments`
 
 ## User Interface
 
-The UI is built using React and Vite. It is a simple form that allows users to input a review title and text, and then submit the form to the `/api/sentiment` endpoint. 
+The UI is built using React and Vite. The `<SentimentAnalysis />` component is the main component of the UI. It is a simple form that allows users to input a review title and text, and then submit the form to the `/api/sentiment` endpoint.
 
 ![user interface](images/griddb-sentiment-ui.png)
 
@@ -348,6 +348,7 @@ After submitting the form and processing the sentiment analysis, the UI receives
 The response data is then displayed in the UI. If the review is positive, the UI will display a green color, if it is negative, the UI will display a red color, and if it is neutral, the UI will display a yellow color. Also the UI will display the predicted rating and confidence level.
 
 ![user interface](images/sentiment-analysis-1.png)
+
 
 ## Conclusion
 
