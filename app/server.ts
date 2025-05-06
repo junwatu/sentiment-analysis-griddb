@@ -97,8 +97,7 @@ const FEW_SHOTS = [
   },
 ] as const;
 
-// API route remains
-app.post('/api/sentiment', async (req: express.Request, res: express.Response) => {
+app.post('/api/sentiment', async (req, res) => {
   const { title, text } = req.body;
   if (!title && !text) {
     return res.status(400).json({ error: 'Please supply at least a review title or body text.' });
@@ -132,10 +131,10 @@ app.post('/api/sentiment', async (req: express.Request, res: express.Response) =
       console.log(JSON.parse(raw));
       res.json(JSON.parse(raw));
 
-    } catch {
-      res.json({ error: 'Model returned invalid JSON', raw });
+    } catch (parseError) { 
+      res.status(500).json({ error: 'Model returned invalid JSON', raw });
     }
-  } catch (error) {
+  } catch (error) { 
     console.error('[Sentiment API] Error:', error);
     let errorMessage = 'Failed to analyze sentiment.';
     if (error instanceof Error) {
@@ -152,7 +151,11 @@ app.get('/api/sentiments', async (req: express.Request, res: express.Response) =
 
 		res.json({ data: results });
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+    let errorMessage = 'Failed to fetch sentiments.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+		res.status(500).json({ error: errorMessage });
 	}
 });
 

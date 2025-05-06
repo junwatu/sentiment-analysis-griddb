@@ -15,7 +15,9 @@ export async function analyzeReviewSentiment(
     throw new Error('Please supply at least a review title or body text.');
   }
 
-  const baseUrl = import.meta.env.BASE_URL || 'http://localhost:3001';
+  const baseUrl = import.meta.env.VITE_BASE_URL || 'http://localhost:3001';
+  
+  console.log(`baseUrl: ${baseUrl}`);
 
   try {
     const response = await fetch(`${baseUrl}/api/sentiment`, {

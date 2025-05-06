@@ -82,7 +82,6 @@ const FEW_SHOTS = [
         content: '{"label":"neutral","predicted_rating":3,"confidence":0.55}',
     },
 ];
-// API route remains
 app.post('/api/sentiment', async (req, res) => {
     const { title, text } = req.body;
     if (!title && !text) {
@@ -117,8 +116,8 @@ app.post('/api/sentiment', async (req, res) => {
             console.log(JSON.parse(raw));
             res.json(JSON.parse(raw));
         }
-        catch {
-            res.json({ error: 'Model returned invalid JSON', raw });
+        catch (parseError) {
+            res.status(500).json({ error: 'Model returned invalid JSON', raw });
         }
     }
     catch (error) {
@@ -137,7 +136,11 @@ app.get('/api/sentiments', async (req, res) => {
         res.json({ data: results });
     }
     catch (error) {
-        res.status(500).json({ error: error.message });
+        let errorMessage = 'Failed to fetch sentiments.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        res.status(500).json({ error: errorMessage });
     }
 });
 // Catch-all: serve index.html for any non-API route (SPA support)
