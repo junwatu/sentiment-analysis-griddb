@@ -4,7 +4,7 @@
 
 ## Overview
 
-This article explores a practical implementation of sentiment analysis on the product reviews using OpenAI's large language models (LLMs) and GridDB, a scalable time-series database. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
+This article explores a practical implementation of sentiment analysis on product reviews using OpenAI's large language models (LLMs) and GridDB, a scalable time-series database. The project involves extracting review data, analyzing sentiment using AI, and efficiently storing and querying the results. It's an example of how modern AI tools and database systems can be combined to process and understand massive amounts of customer feedback.
 
 ## Why Use AI for Sentiment Analysis?
 
@@ -40,7 +40,7 @@ GRIDDB_PASSWORD=
 VITE_BASE_URL=http://localhost:3000
 ```
 
-You can copy the `.env.example` file to `.env` and fill in the values. To get OpenAI API key, read this [section](#openai) and for GridDB Cloud, read this [section](#griddb-cloud-setup). By default, the `VITE_BASE_URL` is set to `http://localhost:3000` but you can change it to your own domain.
+You can copy the `.env.example` file to `.env` and fill in the values. To get the OpenAI API key, read this [section](#openai) and for GridDB Cloud, read this [section](#griddb-cloud-setup). By default, the `VITE_BASE_URL` is set to `http://localhost:3000` but you can change it to your own domain.
 
 ### Run the Project
 
@@ -50,7 +50,7 @@ npm run dev:full
 
 ### Access the Project
 
-If you dont change the `VITE_BASE_URL`, open your browser and navigate to `http://localhost:3000` to access the project.
+If you don't change the `VITE_BASE_URL`, open your browser and navigate to `http://localhost:3000` to access the project.
 
 ![Sentiment Analysis](images/griddb-sentiment-ui.png)
 
@@ -62,9 +62,9 @@ You need Node.js installed because this project uses [Vite](https://vite.dev/) b
 
 ### **OpenAI** 
 
-AI models used for natural language processing and sentiment inference. 
+AI models are used for natural language processing and sentiment analysis. 
 
-Create the OpenAI API key [here](https://platform.openai.com/). You may need create a project and enable few models. We will use `gpt-4o` model.
+Create the OpenAI API key [here](https://platform.openai.com/). You may need to create a project and enable a few models. We will use the `gpt-4o` model.
 
 ### GridDB Cloud Setup
 
@@ -122,7 +122,7 @@ This represents a pipeline where raw review data is processed, analyzed for sent
 
 ## Dataset Preparation
 
-You can use any data review for this project. For example, you can use the [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) or just copy paste a review from one of the product reviews on Amazon.
+You can use any data review for this project. For example, you can use the [Amazon Review Dataset](https://cseweb.ucsd.edu/~jmcauley/datasets.html#amazon_reviews) or just copy-paste a review from one of the product reviews on Amazon.
 
 ## Server
 
@@ -133,8 +133,8 @@ The server is built using Node.js and Express.js. It is a simple server that pro
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | **POST** | `/api/sentiment` | Sentiment analysis for a review and persist the result in GridDB |
-| **GET**  | `/api/sentiments` | Retrieve **all** stored review records |
-| **GET**  | `*` (any non‑API path) | Serve main UI |
+| **GET** | `/api/sentiments` | Retrieve **all** stored review records |
+| **GET** | `*` (any non‑API path) | Serve main UI |
 
 
 
@@ -144,7 +144,7 @@ We use the OpenAI API (e.g., GPT-4o) to evaluate the sentiment of each review. T
 
 ### System Prompt
 
-We will use system prompt to guide the model to understand the task. The system prompt is as follows:
+We will use a system prompt to guide the model to understand the task. The system prompt is as follows:
 
 ```shell
 You are a sentiment‑analysis classifier for Amazon user‑review records. You will receive one JSON object that contains the fields "title" and "text" (and sometimes "rating" which you must ignore). Your task:\n1. Read the natural‑language content (title + text).\n2. Predict the sentiment label and an estimated star rating without looking at any numeric "rating" field.\n3. Respond ONLY with a JSON object in this schema:\n{\n  "label": "positive | neutral | negative",\n  "predicted_rating": 1 | 2 | 3 | 4 | 5,\n  "confidence": 0-1\n}\nMapping rule (aligned to the Amazon Reviews dataset):\n• 1–2 stars ⇒ negative\n• 3 stars   ⇒ neutral\n• 4–5 stars ⇒ positive\nIf the review text is empty, off‑topic, or nonsense, return:\n{"label":"neutral","predicted_rating":3,"confidence":0.0}\nNever add commentary or extra keys.
@@ -152,52 +152,52 @@ You are a sentiment‑analysis classifier for Amazon user‑review records. You 
 
 ### Few Shots
 
-Few shots are used to guide the model to understand the task. The few shots used in this project are as follows:
+A few shots are used to guide the model in understanding the task. The few shots used in this project are as follows:
 
 ```typescript
 const FEW_SHOTS = [
-  {
+ {
     role: 'user',
     content: JSON.stringify({
       title: 'Rock‑solid mount',
       text:
         "I've tried dozens of phone mounts—this one finally stays put on bumpy roads. Five minutes to install and rock‑solid!",
-    }),
-  },
-  {
+ }),
+ },
+ {
     role: 'assistant',
     content: '{"label":"positive","predicted_rating":5,"confidence":0.96}',
-  },
-  {
+ },
+ {
     role: 'user',
     content: JSON.stringify({
       title: 'Broke in a week',
       text:
         "Looks nice, but the zipper broke after one week and Amazon wouldn't replace it.",
-    }),
-  },
-  {
+ }),
+ },
+ {
     role: 'assistant',
     content: '{"label":"negative","predicted_rating":1,"confidence":0.93}',
-  },
-  {
+ },
+ {
     role: 'user',
     content: JSON.stringify({
       title: 'Meh',
       text:
         'These were lightweight and soft but much too small for my liking. I would have preferred two of these together to make one loc.',
-    }),
-  },
-  {
+ }),
+ },
+ {
     role: 'assistant',
     content: '{"label":"neutral","predicted_rating":3,"confidence":0.55}',
-  },
+ },
 ] as const;
 ```
 
 ### Call OpenAI API
 
-The sentiment analysis done by OpenAI using `gpt-4o` model. The code is available in the `server.ts` file. 
+The sentiment analysis was done by OpenAI using the `gpt-4o` model. The code is available in the `server.ts` file. 
 
 Here is the important code snippet:
 
@@ -206,17 +206,17 @@ const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
     temperature: 0,
     messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...FEW_SHOTS,
-        {
+ { role: 'system', content: SYSTEM_PROMPT },
+ ...FEW_SHOTS,
+ {
           role: 'user',
           content: JSON.stringify({ title, text }),
-        },
-    ],
+ },
+ ],
 });
 ```
 
-The `text` is the review text and `title` is the review title.
+The `text` is the review text and the `title` is the review title.
 
 ## Storing Results in GridDB
 
@@ -249,30 +249,30 @@ The code to insert data is available in the `griddb.ts` file.
 
 ```typescript
 async function insertData({
-	data,
-	containerName = 'sentiments',
+  data,
+  containerName = 'sentiments',
 }: {
-	data: GridDBData;
-	containerName?: string;
+  data: GridDBData;
+  containerName?: string;
 }): Promise<GridDBResponse> {
-	try {
-		const row = [
-			parseInt(data.id.toString()),
-			data.title,
-			data.review,
-			data.sentiment,
-		];
+  try {
+    const row = [
+      parseInt(data.id.toString()),
+      data.title,
+      data.review,
+      data.sentiment,
+ ];
 
-		const path = `/containers/${containerName}/rows`;
-		return await makeRequest(path, [row], 'PUT');
-	} catch (error) {
-		if (error instanceof GridDBError) {
-			throw error;
-		}
+    const path = `/containers/${containerName}/rows`;
+    return await makeRequest(path, [row], 'PUT');
+ } catch (error) {
+    if (error instanceof GridDBError) {
+      throw error;
+ }
 
-		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-		throw new GridDBError(`Failed to insert data: ${errorMessage}`, undefined, undefined, error);
-	}
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new GridDBError(`Failed to insert data: ${errorMessage}`, undefined, undefined, error);
+ }
 }
 ```
 
@@ -290,14 +290,14 @@ To query all data from the `sentiments` container, you can use the following API
 
 ```typescript
 app.get('/api/sentiments', async (req: express.Request, res: express.Response) => {
-	try {
-		// Search all data
-		const results = await dbClient.searchData([{ type: 'sql', stmt: 'SELECT * FROM sentiments' }]);
+  try {
+    // Search all data
+    const results = await dbClient.searchData([{ type: 'sql', stmt: 'SELECT * FROM sentiments' }]);
 
-		res.json({ data: results });
-	} catch (error) {
-		res.status(500).json({ error: error.message });
-	}
+    res.json({ data: results });
+ } catch (error) {
+    res.status(500).json({ error: error.message });
+ }
 });
 ```
 
