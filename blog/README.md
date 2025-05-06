@@ -45,7 +45,7 @@ You can copy the `.env.example` file to `.env` and fill in the values. To get th
 ### Run the Project
 
 ```bash
-npm run dev:full
+npm run start
 ```
 
 ### Access the Project
@@ -135,8 +135,6 @@ The server is built using Node.js and Express.js. It is a simple server that pro
 | **POST** | `/api/sentiment` | Sentiment analysis for a review and persist the result in GridDB |
 | **GET** | `/api/sentiments` | Retrieve **all** stored review records |
 | **GET** | `*` (any non‑API path) | Serve main UI |
-
-
 
 ## Running Sentiment Analysis with OpenAI
 
@@ -233,7 +231,18 @@ The container schema is as follows:
 
 ### Saving Data to GridDB
 
-The data is saved to GridDB using the `insertData` function. You can find the code in the `server.ts` file in the route `/api/sentiment`.
+This is the example data format that is saved to GridDB:
+
+```json
+{
+  id: 4495,
+  title: 'US Version',
+  review: "US version of the game so DLC can't be downloaded. Returned for a refund",
+  sentiment: '{"label":"negative","predicted_rating":2,"confidence":0.88}'
+}
+```
+
+The `reviewData` is inserted into GridDB using the `insertData` function.
 
 ```typescript
 const reviewData: GridDBData = {
@@ -245,7 +254,7 @@ const reviewData: GridDBData = {
 await dbClient.insertData({ data: reviewData });
 ```
 
-The code to insert data is available in the `griddb.ts` file.
+The code to insert data is available in the `griddb.ts` file. Basically, this function takes the data and inserts it into GridDB using the HTTP method.
 
 ```typescript
 async function insertData({
@@ -276,13 +285,13 @@ async function insertData({
 }
 ```
 
-The API route to insert data in GridDB Cloud is:
+The API route used to insert data in GridDB Cloud is:
 
  ```typescript
  `${GRIDDB_WEB_API_URL}/containers/sentiments/rows`
 ```
 
-Using the HTTP PUT method, the data can be easily inserted into the database.
+and by using the HTTP PUT method, the data can be easily inserted into the database.
 
 ### Query All Data
 
@@ -301,22 +310,30 @@ app.get('/api/sentiments', async (req: express.Request, res: express.Response) =
 });
 ```
 
-The code uses SQL SELECT statement to query all data from the `sentiments` container.
+The code above uses SQL SELECT statement to query all data from the `sentiments` container.
 
 ## User Interface
 
 The UI is built using React and Vite. It is a simple form that allows users to input a review title and text, and then submit the form to the `/api/sentiment` endpoint. 
 
-
 ![user interface](images/griddb-sentiment-ui.png)
 
-The response from the endpoint is then displayed in the UI.
+The response data has JSON format, for example:
+
+```json
+{
+    "label": "positive",
+    "predicted_rating": 4,
+    "confidence": 0.85
+}
+```
+The response data from the endpoint is then displayed in the UI. 
 
 ![user interface](images/sentiment-analysis-1.png)
 
 ## Conclusion
 
-This project demonstrates a real-world use case of combining AI          and databases for sentiment analysis. Using OpenAI for intelligent sentiment tagging and GridDB for scalable data storage enables fast, efficient processing of customer reviews. The same framework can be extended to other datasets and domains, including social media, customer support logs, or live feedback systems.
+This project demonstrates a real-world use case of combining AI and databases for sentiment analysis. Using OpenAI for intelligent sentiment tagging and GridDB for scalable data storage enables fast, efficient processing of customer reviews. The same framework can be extended to other datasets and domains, including social media, customer support logs, or live feedback systems.
 
 ## References
 

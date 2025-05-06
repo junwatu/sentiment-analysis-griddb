@@ -23,6 +23,7 @@ const SentimentAnalysis: React.FC = () => {
 
     try {
       const data = await analyzeReviewSentiment(title, text);
+      console.log(data);
       setResult(data);
     } catch (err: unknown) {
       let errorMessage = 'Failed to analyze sentiment';
